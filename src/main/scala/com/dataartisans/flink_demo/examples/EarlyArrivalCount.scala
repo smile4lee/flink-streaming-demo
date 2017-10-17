@@ -16,16 +16,16 @@
 
 package com.dataartisans.flink_demo.examples
 
-import com.dataartisans.flink_demo.datatypes.{TaxiRide, GeoPoint}
+import com.dataartisans.flink_demo.datatypes.{GeoPoint, TaxiRide}
 import com.dataartisans.flink_demo.sinks.ElasticsearchUpsertSink
 import com.dataartisans.flink_demo.sources.TaxiRideSource
 import com.dataartisans.flink_demo.utils.{DemoStreamEnvironment, NycGeoUtils}
+import org.apache.flink.api.common.state.ValueStateDescriptor
 import org.apache.flink.streaming.api.TimeCharacteristic
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment
 import org.apache.flink.streaming.api.scala._
 import org.apache.flink.streaming.api.windowing.time.Time
-import org.apache.flink.streaming.api.windowing.triggers.Trigger
-import org.apache.flink.streaming.api.windowing.triggers.Trigger.{TriggerResult, TriggerContext}
+import org.apache.flink.streaming.api.windowing.triggers.Trigger.TriggerContext
+import org.apache.flink.streaming.api.windowing.triggers.{Trigger, TriggerResult}
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow
 import org.apache.flink.util.Collector
 
@@ -58,8 +58,8 @@ object EarlyArrivalCount {
     val earlyCountThreshold = 50
 
     // Elasticsearch parameters
-    val writeToElasticsearch = false // set to true to write results to Elasticsearch
-    val elasticsearchHost = "" // look-up hostname in Elasticsearch log output
+    val writeToElasticsearch = true // set to true to write results to Elasticsearch
+    val elasticsearchHost = "127.0.0.1" // look-up hostname in Elasticsearch log output
     val elasticsearchPort = 9300
 
 
@@ -116,6 +116,8 @@ object EarlyArrivalCount {
 
   class EarlyCountTrigger(triggerCnt: Int) extends Trigger[(Int, Short), TimeWindow] {
 
+    val descriptor = new ValueStateDescriptor[Int]("count", createTypeInformation[Int])
+
     override def onElement(
       event: (Int, Short),
       timestamp: Long,
@@ -126,7 +128,7 @@ object EarlyArrivalCount {
       ctx.registerEventTimeTimer(window.getEnd)
       
       // get current count
-      val personCnt = ctx.getKeyValueState[Integer]("personCnt", 0)
+      val personCnt = ctx.getPartitionedState(descriptor)//.getKeyValueState[Integer]("personCnt", 0)
       // update count by passenger cnt of new event
       personCnt.update(personCnt.value() + event._2)
       // check if count is high enough for early notification
@@ -156,6 +158,10 @@ object EarlyArrivalCount {
       ctx: TriggerContext): TriggerResult = {
 
       throw new UnsupportedOperationException("I am not a processing time trigger")
+    }
+
+    override def clear(w: TimeWindow, triggerContext: TriggerContext): Unit = {
+      triggerContext.getPartitionedState(descriptor).clear
     }
   }
 

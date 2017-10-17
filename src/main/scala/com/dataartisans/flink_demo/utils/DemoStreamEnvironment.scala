@@ -17,8 +17,7 @@
 package com.dataartisans.flink_demo.utils
 
 import org.apache.flink.configuration.{ConfigConstants, Configuration}
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment
-import org.apache.flink.streaming.api.environment.LocalStreamEnvironment
+import org.apache.flink.streaming.api.scala.StreamExecutionEnvironment
 
 object DemoStreamEnvironment {
 
@@ -30,7 +29,9 @@ object DemoStreamEnvironment {
     config.setString(ConfigConstants.JOB_MANAGER_WEB_LOG_PATH_KEY, "./data/dummyLogFile.txt")
 
     // create a local stream execution environment
-    new LocalStreamEnvironment(config)
+    //new LocalStreamEnvironment(config)
+    StreamExecutionEnvironment.createLocalEnvironmentWithWebUI(config)
+    //StreamExecutionEnvironment.getExecutionEnvironment
   }
 
 }
