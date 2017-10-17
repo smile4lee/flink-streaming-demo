@@ -55,7 +55,7 @@ abstract class ElasticsearchUpsertSink[T](host: String, port: Int, cluster: Stri
 
     val config = new util.HashMap[String, String]
     config.put("bulk.flush.max.actions", "1")
-    config.put("cluster.name", cluster)
+    //config.put("cluster.name", cluster)
 
     val settings = ImmutableSettings.settingsBuilder()
       .put(config)
