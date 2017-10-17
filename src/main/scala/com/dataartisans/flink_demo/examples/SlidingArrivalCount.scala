@@ -55,7 +55,7 @@ object SlidingArrivalCount {
 
     // Elasticsearch parameters
     val writeToElasticsearch = true // set to true to write results to Elasticsearch
-    val elasticsearchHost = "127.0.0.1" // look-up hostname in Elasticsearch log output
+    val elasticsearchHost = "10.242.42.40" // look-up hostname in Elasticsearch log output
     val elasticsearchPort = 9300
 
 
